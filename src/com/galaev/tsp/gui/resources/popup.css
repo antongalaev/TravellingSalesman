@@ -1,0 +1,6 @@
+.root {
+    -fx-base: rgb(60, 63, 65);
+    -fx-background: rgb(60, 63, 65);
+    -fx-background-color: rgb(60, 63, 65);
+    -fx-control-inner-background: rgb(60, 63, 65);
+}

@@ -1,0 +1,69 @@
+.root {
+    -fx-base: rgb(60, 63, 65);
+    -fx-background: rgb(60, 63, 65);
+    -fx-control-inner-background: rgb(60, 63, 65);
+}
+.menu-bar {
+    -fx-background-color:
+        linear-gradient(to right, derive(-fx-base,-20%), derive(-fx-base,-10%), derive(-fx-base,+10%));
+}
+.context-menu {
+    -fx-background-color: rgb(60, 63, 65);
+    -fx-border-width: 0.25;
+    -fx-border-color: black;
+    -fx-effect: dropshadow(three-pass-box, #ff8500, 4, 1.0, 100, 100);
+}
+.separator{
+    -fx-background-color: #282b2c;
+    -fx-padding: -1.2;
+}
+.tool-bar:horizontal {
+    -fx-background-color:
+        linear-gradient(to right, derive(-fx-base,-20%), derive(-fx-base,-10%), derive(-fx-base,+10%));
+    -fx-border-color: #2c2c2c;
+    -fx-border-style: solid hidden solid hidden;
+}
+.tab-content-area {
+    -fx-border-color: -fx-base;
+    -fx-border-style: solid hidden hidden hidden;
+    -fx-border-width: 3 0 0 0;
+}
+.button {
+    -fx-background-color: transparent;
+}
+.button:hover {
+    -fx-background-color: -fx-shadow-highlight-color, -fx-accent, -fx-inner-border, -fx-body-color;
+    -fx-color: -fx-hover-base;
+}
+.text-field {
+    -fx-alignment: center;
+    -fx-min-width: 0.0;
+    -fx-min-height: 0.0;
+}
+.circle {
+    -fx-stroke: blue;
+    -fx-fill: radial-gradient(radius 100%, blue, derive(blue, +100%));
+    -fx-stroke-width: 2;
+}
+.line {
+    -fx-fill: blue;
+    -fx-opacity: 0.0;
+}
+.text-area {
+    -fx-font: 18 "Times New Roman";
+    -fx-text-fill: #ff8500;
+    -fx-font-smoothing-type: lcd;
+    -fx-background-color: #2c2c2c;
+}
+#canvas {
+    -fx-background-color: #2c2c2c;
+}
+#table {
+    -fx-font-size: 14;
+    -fx-background-color: #2c2c2c;
+}
+#mytext {
+    -fx-fill: #ff8500;
+    -fx-text-alignment: left;
+    -fx-font-smoothing-type: lcd;
+}

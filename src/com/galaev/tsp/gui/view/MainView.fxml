@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+
+<BorderPane prefHeight="400.0" prefWidth="500.0" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.galaev.tsp.gui.controllers.MainController">
+    <center>
+        <TabPane tabClosingPolicy="UNAVAILABLE" fx:id="tabPane">
+            <Tab text="Table" fx:id="tableTab" >
+                <GridPane fx:id="table" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                          minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0"
+                          hgap="2" vgap="2">
+                    <padding>
+                        <Insets top="5" bottom="25" left="5" right="25" />
+                    </padding>
+                </GridPane>
+            </Tab>
+            <Tab text="Canvas" fx:id="canvasTab">
+                <Pane fx:id="canvas" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                      minHeight="0.0" minWidth="0.0" onMouseClicked="#addNode" prefHeight="180.0" prefWidth="200.0" />
+            </Tab>
+            <Tab text="Result" fx:id="resultTab">
+                <TextArea fx:id="result" editable="false" prefWidth="200.0" wrapText="true" />
+            </Tab>
+        </TabPane>
+    </center>
+    <top>
+        <VBox>
+            <MenuBar>
+                <Menu text="File">
+                    <MenuItem fx:id="newMenuItem" onAction="#createNew" text="New">
+                        <graphic>
+                            <ImageView>
+                                <Image url="@../resources/new.png"/>
+                            </ImageView>
+                        </graphic>
+                    </MenuItem>
+                    <MenuItem fx:id="openMenuItem" onAction="#openFile" text="Open">
+                        <graphic>
+                            <ImageView>
+                                <Image url="@../resources/open.png"/>
+                            </ImageView>
+                        </graphic>
+                    </MenuItem>
+                    <MenuItem fx:id="saveMenuItem" onAction="#saveFile" text="Save">
+                        <graphic>
+                            <ImageView>
+                                <Image url="@../resources/save.png"/>
+                            </ImageView>
+                        </graphic>
+                    </MenuItem>
+                    <SeparatorMenuItem mnemonicParsing="false" />
+                    <MenuItem onAction="#exit" text="Exit" />
+                </Menu>
+                <Menu mnemonicParsing="false" text="Edit">
+                    <MenuItem fx:id="randomMenuItem" onAction="#randomFill"
+                              text="Fill the Table Randomly"/>
+                    <SeparatorMenuItem mnemonicParsing="false" />
+                    <MenuItem fx:id="clearMenuItem" text="Clear Canvas" onAction="#clearCanvas" />
+                </Menu>
+                <Menu text="Solve">
+                    <MenuItem fx:id="solveMenuItem" onAction="#solve" text="Solve">
+                        <graphic>
+                            <ImageView>
+                                <Image url="@../resources/solve.png"/>
+                            </ImageView>
+                        </graphic>
+                    </MenuItem>
+                    <MenuItem fx:id="abortMenuItem" onAction="#abort" text="Abort solving">
+                        <graphic>
+                            <ImageView>
+                                <Image url="@../resources/abort.gif"/>
+                            </ImageView>
+                        </graphic>
+                    </MenuItem>
+                </Menu>
+                <Menu text="Settings">
+                    <Menu text="Input Mode">
+                        <RadioMenuItem fx:id="tableMode" onAction="#tableModeOn" text="Table Mode" />
+                        <RadioMenuItem fx:id="canvasMode" onAction="#canvasModeOn" text="Canvas Mode" />
+                    </Menu>
+                    <SeparatorMenuItem mnemonicParsing="false" />
+                    <CheckMenuItem fx:id="symmetricMode" onAction="#useSymmetricTable" text="Use Symmetric Table" />
+                    <SeparatorMenuItem mnemonicParsing="false" />
+                    <MenuItem fx:id="maxRandomMenuItem" onAction="#setMaxRandomValue" mnemonicParsing="false" text="Max Value for Random Fill" />
+                </Menu>
+            </MenuBar>
+            <ToolBar>
+                <Button fx:id="newButton" onAction="#createNew" text="New Route" contentDisplay="GRAPHIC_ONLY">
+                    <graphic>
+                        <ImageView>
+                            <Image url="@../resources/new.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+                <Button fx:id="openButton" onAction="#openFile" text="Open File" contentDisplay="GRAPHIC_ONLY">
+                    <graphic>
+                        <ImageView>
+                            <Image url="@../resources/open.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+                <Button fx:id="saveButton" onAction="#saveFile" text="Save Route" contentDisplay="GRAPHIC_ONLY">
+                    <graphic>
+                        <ImageView>
+                            <Image url="@../resources/save.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+                <Button fx:id="solveButton" onAction="#solve" text="Solve" contentDisplay="GRAPHIC_ONLY">
+                    <graphic>
+                        <ImageView>
+                            <Image url="@../resources/solve.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+            </ToolBar>
+        </VBox>
+    </top>
+</BorderPane>

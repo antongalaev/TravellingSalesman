@@ -1,0 +1,13 @@
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.GridPane?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<GridPane fx:controller="com.galaev.tsp.gui.controllers.PromptController" xmlns:fx="http://javafx.com/fxml"
+          alignment="center" hgap="10" vgap="10" id="gridpane">
+    <Label id="label" GridPane.columnIndex="1" GridPane.columnSpan="5" GridPane.rowIndex="1"/>
+    <TextField fx:id="textField" GridPane.columnIndex="1" GridPane.columnSpan="4" GridPane.rowIndex="2"/>
+    <Button fx:id="button" text="OK" GridPane.rowIndex="2" GridPane.columnIndex="5"
+            defaultButton="true" onAction="#buttonClick"/>
+</GridPane>
