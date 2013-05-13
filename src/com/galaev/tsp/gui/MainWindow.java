@@ -25,13 +25,14 @@ public class MainWindow extends Application {
      * @throws Exception
      */
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage)
+            throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("view/MainView.fxml"));
-        primaryStage.setTitle("Travelling Salesman");
         Scene scene = new Scene(root, 700, 500);
-        scene.getStylesheets().add("com/galaev/tsp/gui/resources/main.css");
+        scene.getStylesheets().add("com/galaev/tsp/gui/resources/styles/main.css");
         primaryStage.setScene(scene);
-        primaryStage.getIcons().add(new Image("com/galaev/tsp/gui/resources/icon.png"));
+        primaryStage.setTitle("Travelling Salesman");
+        primaryStage.getIcons().add(new Image("com/galaev/tsp/gui/resources/icons/icon.png"));
         primaryStage.show();
     }
 

@@ -12,7 +12,7 @@ import java.io.IOException;
 public class Message {
 
     public Message(Stage primaryStage, String title, String message) {
-        Parent root = null;
+        Parent root;
         try {
             root = FXMLLoader.load(getClass().getResource("view/MessageView.fxml"));
         } catch (IOException e) {
@@ -22,13 +22,14 @@ public class Message {
         Stage stage = new Stage();
         //Initialize the Stage with type of modal
         stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setResizable(false);
         //Set the owner of the Stage
         stage.initOwner(primaryStage);
         stage.setTitle(title);
         Label label = (Label) root.lookup("#label");
         label.setText(message);
-        Scene scene = new Scene(root, 250, 100);
-        scene.getStylesheets().add("com/galaev/tsp/gui/resources/popup.css");
+        Scene scene = new Scene(root, 350, 100);
+        scene.getStylesheets().add("com/galaev/tsp/gui/resources/styles/popup.css");
         stage.setScene(scene);
         stage.showAndWait();
     }

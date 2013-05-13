@@ -6,7 +6,10 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.VBox?>
 <VBox fx:controller="com.galaev.tsp.gui.controllers.MessageController" xmlns:fx="http://javafx.com/fxml"
-          alignment="center" spacing="15" id="vbox">
-    <Label id="label" />
+          alignment="center" spacing="15">
+    <padding>
+        <Insets top="10" bottom="10" left="10" right="10"/>
+    </padding>
+    <Label id="label" wrapText="true"/>
     <Button fx:id="button" text="OK" defaultButton="true" onAction="#buttonClick"/>
 </VBox>

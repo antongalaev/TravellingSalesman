@@ -14,7 +14,7 @@
             fx:controller="com.galaev.tsp.gui.controllers.MainController">
     <center>
         <TabPane tabClosingPolicy="UNAVAILABLE" fx:id="tabPane">
-            <Tab text="Table" fx:id="tableTab" >
+            <Tab fx:id="tableTab" >
                 <GridPane fx:id="table" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
                           minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0"
                           hgap="2" vgap="2">
@@ -23,11 +23,11 @@
                     </padding>
                 </GridPane>
             </Tab>
-            <Tab text="Canvas" fx:id="canvasTab">
+            <Tab  fx:id="canvasTab">
                 <Pane fx:id="canvas" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
                       minHeight="0.0" minWidth="0.0" onMouseClicked="#addNode" prefHeight="180.0" prefWidth="200.0" />
             </Tab>
-            <Tab text="Result" fx:id="resultTab">
+            <Tab fx:id="resultTab">
                 <TextArea fx:id="result" editable="false" prefWidth="200.0" wrapText="true" />
             </Tab>
         </TabPane>
@@ -35,90 +35,94 @@
     <top>
         <VBox>
             <MenuBar>
-                <Menu text="File">
-                    <MenuItem fx:id="newMenuItem" onAction="#createNew" text="New">
+                <Menu fx:id="fileMenu">
+                    <MenuItem fx:id="newMenuItem" onAction="#createNew">
                         <graphic>
                             <ImageView>
-                                <Image url="@../resources/new.png"/>
+                                <Image url="@../resources/icons/new.png"/>
                             </ImageView>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="openMenuItem" onAction="#openFile" text="Open">
+                    <MenuItem fx:id="openMenuItem" onAction="#openFile">
                         <graphic>
                             <ImageView>
-                                <Image url="@../resources/open.png"/>
+                                <Image url="@../resources/icons/open.png"/>
                             </ImageView>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="saveMenuItem" onAction="#saveFile" text="Save">
+                    <MenuItem fx:id="saveMenuItem" onAction="#saveFile">
                         <graphic>
                             <ImageView>
-                                <Image url="@../resources/save.png"/>
+                                <Image url="@../resources/icons/save.png"/>
                             </ImageView>
                         </graphic>
                     </MenuItem>
+                    <SeparatorMenuItem mnemonicParsing="false"/>
+                    <MenuItem fx:id="exitMenuItem" onAction="#exit"/>
+                </Menu>
+                <Menu fx:id="editMenu">
+                    <MenuItem fx:id="randomMenuItem" onAction="#randomFill"/>
+                    <CheckMenuItem fx:id="symmetricMode" onAction="#useSymmetricTable"/>
                     <SeparatorMenuItem mnemonicParsing="false" />
-                    <MenuItem onAction="#exit" text="Exit" />
+                    <MenuItem fx:id="clearMenuItem" onAction="#clearCanvas" />
                 </Menu>
-                <Menu mnemonicParsing="false" text="Edit">
-                    <MenuItem fx:id="randomMenuItem" onAction="#randomFill"
-                              text="Fill the Table Randomly"/>
-                    <SeparatorMenuItem mnemonicParsing="false" />
-                    <MenuItem fx:id="clearMenuItem" text="Clear Canvas" onAction="#clearCanvas" />
-                </Menu>
-                <Menu text="Solve">
-                    <MenuItem fx:id="solveMenuItem" onAction="#solve" text="Solve">
+                <Menu fx:id="solveMenu">
+                    <MenuItem fx:id="solveMenuItem" onAction="#solve">
                         <graphic>
                             <ImageView>
-                                <Image url="@../resources/solve.png"/>
+                                <Image url="@../resources/icons/solve.png"/>
                             </ImageView>
                         </graphic>
                     </MenuItem>
-                    <MenuItem fx:id="abortMenuItem" onAction="#abort" text="Abort solving">
+                    <MenuItem fx:id="abortMenuItem" onAction="#abort">
                         <graphic>
                             <ImageView>
-                                <Image url="@../resources/abort.gif"/>
+                                <Image url="@../resources/icons/abort.gif"/>
                             </ImageView>
                         </graphic>
                     </MenuItem>
                 </Menu>
-                <Menu text="Settings">
-                    <Menu text="Input Mode">
-                        <RadioMenuItem fx:id="tableMode" onAction="#tableModeOn" text="Table Mode" />
-                        <RadioMenuItem fx:id="canvasMode" onAction="#canvasModeOn" text="Canvas Mode" />
+                <Menu fx:id="settingsMenu">
+                    <Menu fx:id="inputModeMenu">
+                        <RadioMenuItem fx:id="tableMode" onAction="#tableModeOn"/>
+                        <RadioMenuItem fx:id="canvasMode" onAction="#canvasModeOn"/>
                     </Menu>
                     <SeparatorMenuItem mnemonicParsing="false" />
-                    <CheckMenuItem fx:id="symmetricMode" onAction="#useSymmetricTable" text="Use Symmetric Table" />
+                    <MenuItem fx:id="maxRandomMenuItem" onAction="#setMaxRandomValue" mnemonicParsing="false"/>
                     <SeparatorMenuItem mnemonicParsing="false" />
-                    <MenuItem fx:id="maxRandomMenuItem" onAction="#setMaxRandomValue" mnemonicParsing="false" text="Max Value for Random Fill" />
+                    <Menu fx:id="languageMenu" text="Language">
+                        <MenuItem id="english" text="English" onAction="#setEnglish"/>
+                        <MenuItem id="russian" text="Russian" onAction="#setRussian"/>
+                        <MenuItem id="deutsch" text="Deutsch" onAction="#setDeutsch"/>
+                    </Menu>
                 </Menu>
             </MenuBar>
             <ToolBar>
-                <Button fx:id="newButton" onAction="#createNew" text="New Route" contentDisplay="GRAPHIC_ONLY">
+                <Button fx:id="newButton" onAction="#createNew" contentDisplay="GRAPHIC_ONLY">
                     <graphic>
                         <ImageView>
-                            <Image url="@../resources/new.png"/>
+                            <Image url="@../resources/icons/new.png"/>
                         </ImageView>
                     </graphic>
                 </Button>
-                <Button fx:id="openButton" onAction="#openFile" text="Open File" contentDisplay="GRAPHIC_ONLY">
+                <Button fx:id="openButton" onAction="#openFile" contentDisplay="GRAPHIC_ONLY">
                     <graphic>
                         <ImageView>
-                            <Image url="@../resources/open.png"/>
+                            <Image url="@../resources/icons/open.png"/>
                         </ImageView>
                     </graphic>
                 </Button>
-                <Button fx:id="saveButton" onAction="#saveFile" text="Save Route" contentDisplay="GRAPHIC_ONLY">
+                <Button fx:id="saveButton" onAction="#saveFile" contentDisplay="GRAPHIC_ONLY">
                     <graphic>
                         <ImageView>
-                            <Image url="@../resources/save.png"/>
+                            <Image url="@../resources/icons/save.png"/>
                         </ImageView>
                     </graphic>
                 </Button>
-                <Button fx:id="solveButton" onAction="#solve" text="Solve" contentDisplay="GRAPHIC_ONLY">
+                <Button fx:id="solveButton" onAction="#solve" contentDisplay="GRAPHIC_ONLY">
                     <graphic>
                         <ImageView>
-                            <Image url="@../resources/solve.png"/>
+                            <Image url="@../resources/icons/solve.png"/>
                         </ImageView>
                     </graphic>
                 </Button>

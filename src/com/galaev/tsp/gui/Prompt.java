@@ -26,13 +26,14 @@ public class Prompt {
         stage = new Stage();
         //Initialize the Stage with type of modal
         stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setResizable(false);
         //Set the owner of the Stage
         stage.initOwner(primaryStage);
         stage.setTitle(title);
         Label label = (Label) root.lookup("#label");
         label.setText(message);
         Scene scene = new Scene(root, 300, 100);
-        scene.getStylesheets().add("com/galaev/tsp/gui/resources/popup.css");
+        scene.getStylesheets().add("com/galaev/tsp/gui/resources/styles/popup.css");
         stage.setScene(scene);
     }
 

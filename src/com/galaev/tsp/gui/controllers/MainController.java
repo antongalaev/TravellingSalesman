@@ -36,6 +36,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ContextMenuBuilder;
 import javafx.scene.control.Label;
 import javafx.scene.control.LabelBuilder;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.MenuItemBuilder;
 import javafx.scene.control.RadioMenuItem;
@@ -71,10 +72,12 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.ResourceBundle;
@@ -96,13 +99,20 @@ public class MainController implements Initializable {
     public Pane canvas;
     public GridPane table;
     public TextArea result;
-    public MenuItem saveMenuItem;
-    public MenuItem randomMenuItem;
+    public Menu fileMenu;
+    public Menu editMenu;
+    public Menu solveMenu;
+    public Menu settingsMenu;
+    public Menu languageMenu;
+    public Menu inputModeMenu;
     public MenuItem newMenuItem;
     public MenuItem openMenuItem;
+    public MenuItem saveMenuItem;
+    public MenuItem exitMenuItem;
     public MenuItem clearMenuItem;
     public MenuItem solveMenuItem;
     public MenuItem abortMenuItem;
+    public MenuItem randomMenuItem;
     public MenuItem maxRandomMenuItem;
     public CheckMenuItem symmetricMode;
     public RadioMenuItem tableMode;
@@ -111,6 +121,22 @@ public class MainController implements Initializable {
     public Button openButton;
     public Button saveButton;
     public Button solveButton;
+    private String blockTransition;
+    private String allowTransition;
+    private String rename;
+    private String renameTitle;
+    private String renameMessage;
+    private String numberTitle;
+    private String numberMessage;
+    private String maxRandTitle;
+    private String maxRandMessage;
+    private String infoTitle;
+    private String infoNumberMessage;
+    private String infoRandomMessage;
+    private String errorTitle;
+    private String errorFileMessage;
+
+    private ResourceBundle bundle;
     private FileChooser chooser;
     private SolverService service;
     private Matrix matrix;
@@ -141,11 +167,14 @@ public class MainController implements Initializable {
                         ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
                         matrix = (Matrix) ois.readObject();
                     } catch (Exception e) {
+                        showMessage(errorTitle, errorFileMessage);
                         e.printStackTrace();
+                        return;
                     }
                     break;
                 default:
-                    showMessage("Error message", "Can't open file you've chosen.");
+                    showMessage(errorTitle, errorFileMessage);
+                    return;
             }
             // Switch to table mode
             tableModeOn(new ActionEvent());
@@ -171,14 +200,14 @@ public class MainController implements Initializable {
     }
 
     public void createNew(ActionEvent actionEvent) {
-        Prompt prompt = new Prompt((Stage) table.getScene().getWindow(), "Number of Nodes",
-                "Please provide the number of cities (nodes):");
+        Prompt prompt = new Prompt((Stage) table.getScene().getWindow(),
+                numberTitle, numberMessage);
         int number;
         if (prompt.show()) {
             try {
                 number = Integer.parseInt(Prompt.result);
             } catch (NumberFormatException nfe) {
-                showMessage("Info", "Please provide an integer number.");
+                showMessage(infoTitle, infoNumberMessage);
                 return;
             }
         } else {
@@ -214,7 +243,7 @@ public class MainController implements Initializable {
         if (file != null) {
             List<Cell> cells = extractCells();
             if (cells.size() < 9) {
-                showMessage("Info", "Please provide at least 3 nodes.");
+                showMessage(infoTitle, infoNumberMessage);
                 return;
             }
             matrix = new Matrix(cells);
@@ -240,7 +269,7 @@ public class MainController implements Initializable {
                     }
                     break;
                 default:
-                    showMessage("Error message", "Can't save file that way.");
+                    showMessage(errorTitle, errorFileMessage);
             }
         }
     }
@@ -332,6 +361,7 @@ public class MainController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        updateLanguage(Locale.ENGLISH);
         chooser = new FileChooser();
         chooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Text", "*.txt"),
                 new FileChooser.ExtensionFilter("Travelling Salesman Project", "*.tsp"));
@@ -359,13 +389,18 @@ public class MainController implements Initializable {
     }
 
     public void setMaxRandomValue(ActionEvent actionEvent) {
-        Prompt prompt = new Prompt((Stage) table.getScene().getWindow(), "Max Random Value",
-                "Please provide the maximum value for random table fill");
+        Prompt prompt = new Prompt((Stage) table.getScene().getWindow(),
+                maxRandTitle, maxRandMessage);
         if (prompt.show()) {
             try {
-                maxRandomValue = Integer.parseInt(Prompt.result);
+                int value = Integer.parseInt(Prompt.result);
+                if (value <= 0) {
+                    showMessage(infoTitle, infoRandomMessage);
+                } else {
+                    maxRandomValue = value;
+                }
             } catch (NumberFormatException nfe) {
-                System.out.print(nfe);
+                showMessage(infoTitle, infoRandomMessage);
             }
         }
     }
@@ -423,7 +458,7 @@ public class MainController implements Initializable {
         // If it's not a diagonal cell, add custom context menu
         if (from != to) {
             // Context menu item for blocking or allowing transition
-            final MenuItem menuItem = new MenuItem("Block transition");
+            final MenuItem menuItem = new MenuItem(blockTransition);
             menuItem.setOnAction(new EventHandler<ActionEvent>() {
                 public boolean blocked = false;
                 int value;
@@ -431,12 +466,12 @@ public class MainController implements Initializable {
                 public void handle(ActionEvent actionEvent) {
                     if (blocked) {
                         textCell.setText(String.valueOf(value));
-                        menuItem.setText("Block transition");
+                        menuItem.setText(blockTransition);
                         blocked = false;
                     } else {
                         value = Integer.parseInt(textCell.getText());
                         textCell.setText("\u221e");
-                        menuItem.setText("Allow transition");
+                        menuItem.setText(allowTransition);
                         blocked = true;
                     }
                 }
@@ -473,12 +508,12 @@ public class MainController implements Initializable {
                     .minWidth(20)
                     .contextMenu(ContextMenuBuilder.create()
                             .items(MenuItemBuilder.create()
-                                    .text("Rename")
+                                    .text(rename)
                                     .onAction(new EventHandler<ActionEvent>() {
                                         @Override
                                         public void handle(ActionEvent actionEvent) {
-                                            Prompt prompt = new Prompt((Stage) table.getScene().getWindow(), "Rename a Node",
-                                                    "Please provide new name for a city (node):");
+                                            Prompt prompt = new Prompt((Stage) table.getScene().getWindow(),
+                                                    renameTitle, renameMessage);
                                             if (prompt.show()) {
                                                 String newName = Prompt.result;
                                                 names.get(nodeNumber - 1).set(newName);
@@ -513,8 +548,8 @@ public class MainController implements Initializable {
             }
         }
         final int size = circles.size();
-        if (size < 3) {
-            showMessage("Info", "Please provide at least 3 nodes.");
+        if (size < 3 || size > 20) {
+            showMessage(infoTitle, infoNumberMessage);
             return;
         }
         int[][] tempMatrix = new int[size][size];
@@ -556,8 +591,8 @@ public class MainController implements Initializable {
 
     private void solveTable() {
         List<Cell> cells = extractCells();
-        if (cells.size() < 9) {
-            showMessage("Info", "Please provide at least 3 nodes.");
+        if (cells.size() < 9 || cells.size() > 400) {
+            showMessage(infoTitle, infoNumberMessage);
             return;
         }
         tabPane.getSelectionModel().select(canvasTab);
@@ -684,12 +719,12 @@ public class MainController implements Initializable {
             public void handle(ContextMenuEvent contextMenuEvent) {
                 ContextMenu contextMenu = new ContextMenu();
                 contextMenu.getItems().add(MenuItemBuilder.create()
-                        .text("Rename")
+                        .text(rename)
                         .onAction(new EventHandler<ActionEvent>() {
                             @Override
                             public void handle(ActionEvent actionEvent) {
-                                Prompt prompt = new Prompt((Stage) table.getScene().getWindow(), "Rename a Node",
-                                        "Please provide new name for a city (node):");
+                                Prompt prompt = new Prompt((Stage) table.getScene().getWindow(),
+                                        renameTitle, renameMessage);
                                 if (prompt.show()) {
                                     String newName = Prompt.result;
                                     names.get(nodeNumber).set(newName);
@@ -810,5 +845,66 @@ public class MainController implements Initializable {
         saveButton.setDisable(value);
         solveButton.setDisable(value);
         abortMenuItem.setDisable(! value);
+    }
+
+    public void setEnglish(ActionEvent actionEvent) {
+        updateLanguage(Locale.ENGLISH);
+    }
+
+    public void setRussian(ActionEvent actionEvent) {
+        updateLanguage(new Locale("ru"));
+    }
+
+    public void setDeutsch(ActionEvent actionEvent) {
+        updateLanguage(Locale.GERMAN);
+    }
+
+    private void updateLanguage(Locale locale) {
+        bundle = ResourceBundle.getBundle("com.galaev.tsp.gui.resources.bundles.Bundle", locale);
+        canvasTab.setText(utfProperty("canvas"));
+        tableTab.setText(utfProperty("table"));
+        resultTab.setText(utfProperty("result"));
+        fileMenu.setText(utfProperty("file"));
+        editMenu.setText(utfProperty("edit"));
+        settingsMenu.setText(utfProperty("settings"));
+        solveMenu.setText(utfProperty("solve"));
+        newMenuItem.setText(utfProperty("file.new"));
+        openMenuItem.setText(utfProperty("file.open"));
+        saveMenuItem.setText(utfProperty("file.save"));
+        exitMenuItem.setText(utfProperty("file.exit"));
+        symmetricMode.setText(utfProperty("edit.symmetric"));
+        randomMenuItem.setText(utfProperty("edit.random"));
+        clearMenuItem.setText(utfProperty("edit.clear"));
+        solveMenuItem.setText(utfProperty("solve.solve"));
+        abortMenuItem.setText(utfProperty("solve.abort"));
+        inputModeMenu.setText(utfProperty("settings.input"));
+        tableMode.setText(utfProperty("settings.input.table"));
+        canvasMode.setText(utfProperty("settings.input.canvas"));
+        maxRandomMenuItem.setText(utfProperty("settings.maxrandom"));
+        languageMenu.setText(utfProperty("settings.language"));
+        blockTransition = utfProperty("block");
+        allowTransition = utfProperty("allow");
+        rename = utfProperty("rename");
+        renameTitle = utfProperty("rename.title");
+        renameMessage = utfProperty("rename.message");
+        numberTitle = utfProperty("number.title");
+        numberMessage = utfProperty("number.message");
+        maxRandTitle = utfProperty("maxrand.title");
+        maxRandMessage = utfProperty("maxrand.message");
+        infoTitle = utfProperty("info.title");
+        infoNumberMessage = utfProperty("info.number.message");
+        infoRandomMessage = utfProperty("info.random.message");
+        errorTitle = utfProperty("error.title");
+        errorFileMessage = utfProperty("error.file.message");
+    }
+
+    private String utfProperty(String property) {
+        String value = bundle.getString(property);
+        try {
+            return new String(value.getBytes("ISO-8859-1"), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            System.out.println("Unsupported Encoding!");
+            return value;
+        }
     }
 }
