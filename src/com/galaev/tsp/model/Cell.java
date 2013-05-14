@@ -52,7 +52,7 @@ public class Cell implements Serializable {
     /**
      * Setter for the value of a cell.
      *
-     * @return cell value
+     * @param value cell value
      */
     public void setValue(int value) {
         this.value.set(value);

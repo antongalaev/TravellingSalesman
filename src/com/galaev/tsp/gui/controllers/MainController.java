@@ -135,6 +135,9 @@ public class MainController implements Initializable {
     private String infoRandomMessage;
     private String errorTitle;
     private String errorFileMessage;
+    private String routeShortest;
+    private String routeNode;
+    private String routeCost;
 
     private ResourceBundle bundle;
     private FileChooser chooser;
@@ -481,6 +484,17 @@ public class MainController implements Initializable {
             contextMenu.getItems().add(menuItem);
             textCell.setContextMenu(contextMenu);
         }
+        textCell.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable,
+                                String oldValue, String newValue) {
+                try {
+                    Integer.parseInt(newValue);
+                } catch (NumberFormatException e) {
+                    textCell.setText(oldValue);
+                }
+            }
+        });
         // Attach the cell to the grid pane
         table.add(textCell, to + 1, from + 1);
     }
@@ -570,7 +584,7 @@ public class MainController implements Initializable {
             @Override
             public void handle(WorkerStateEvent event) {
                 Route route = (Route) event.getSource().getValue();
-                result.appendText("\n" + route.toString());
+                printRouteInfo(route);
                 Line[] lines = new Line[size];
                 createLines(lines, circles.toArray(new Circle[circles.size()]), route);
                 canvas.getChildren().clear();
@@ -603,7 +617,7 @@ public class MainController implements Initializable {
             @Override
             public void handle(WorkerStateEvent event) {
                 Route route = (Route) event.getSource().getValue();
-                result.appendText("\n" + route.toString());
+                printRouteInfo(route);
                 drawRoute(route);
                 switchControls(false);
             }
@@ -819,14 +833,31 @@ public class MainController implements Initializable {
         return line;
     }
 
-    private int distance(Circle c1, Circle c2) {
-        double dx2 = (c1.getCenterX() - c2.getCenterX()) * (c1.getCenterX() - c2.getCenterX());
-        double dy2 = (c1.getCenterY() - c2.getCenterY()) * (c1.getCenterY() - c2.getCenterY());
-        return (int) (Math.sqrt(dx2 + dy2) + 0.5);
-    }
-
     private void showMessage(String title, String message) {
          new Message((Stage) table.getScene().getWindow(), title, message);
+    }
+
+    /**
+     * Prints to result a string representation of the route.
+     * That is route cost and the description of the route.
+     *
+     * @param route route to be printed
+     */
+    private void printRouteInfo(Route route) {
+        StringBuilder resultBuilder = new StringBuilder();
+        resultBuilder.append(routeCost).append(" ").append(route.getCost());
+        resultBuilder.append("\n").append(routeShortest).append("\n");
+        List<Integer> routeList = route.getRoute();
+        for (int i = 0; i < routeList.size(); ++ i) {
+            resultBuilder.append(routeNode).append(" ")
+                         .append(names.get(routeList.get(i)).get());
+            if (i != routeList.size() - 1) {
+                resultBuilder.append(" >>");
+            }
+            resultBuilder.append("\n");
+        }
+        result.appendText(resultBuilder.toString());
+
     }
 
     private void switchControls(boolean value) {
@@ -896,6 +927,9 @@ public class MainController implements Initializable {
         infoRandomMessage = utfProperty("info.random.message");
         errorTitle = utfProperty("error.title");
         errorFileMessage = utfProperty("error.file.message");
+        routeCost = utfProperty("route.cost");
+        routeNode = utfProperty("route.node");
+        routeShortest = utfProperty("route.shortest");
     }
 
     private String utfProperty(String property) {
@@ -906,5 +940,11 @@ public class MainController implements Initializable {
             System.out.println("Unsupported Encoding!");
             return value;
         }
+    }
+
+    private int distance(Circle c1, Circle c2) {
+        double dx2 = (c1.getCenterX() - c2.getCenterX()) * (c1.getCenterX() - c2.getCenterX());
+        double dy2 = (c1.getCenterY() - c2.getCenterY()) * (c1.getCenterY() - c2.getCenterY());
+        return (int) (Math.sqrt(dx2 + dy2) + 0.5);
     }
 }

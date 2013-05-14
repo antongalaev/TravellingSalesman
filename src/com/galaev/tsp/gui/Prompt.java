@@ -16,7 +16,7 @@ public class Prompt {
     private Stage stage;
 
     public Prompt(Stage primaryStage, String title, String message) {
-        Parent root = null;
+        Parent root;
         try {
             root = FXMLLoader.load(getClass().getResource("view/PromptView.fxml"));
         } catch (IOException e) {

@@ -56,20 +56,4 @@ public class Route {
             route.add(transition.getTo());
         }
     }
-
-    /**
-     * Returns a string representation of the object.
-     * That is route cost and the description of the route.
-     *
-     * @return string, containing route description and its cost
-     */
-    public String toString() {
-        StringBuilder result = new StringBuilder();
-        result.append("The shortest possible route is the following:\n");
-        for (Integer i : route) {
-            result.append("City #" + i + " ->\n");
-        }
-        result.append("\nTotal cost of the route is " + cost);
-        return result.toString();
-    }
 }
