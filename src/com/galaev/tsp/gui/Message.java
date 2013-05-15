@@ -9,8 +9,22 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
+/**
+ * Main class for a Message Window.
+ *
+ * @author Anton Galaev
+ */
 public class Message {
 
+    /**
+     * Public constructor for a Message.
+     * Creates a modal window with title and message,
+     * provided as parameters.
+     *
+     * @param primaryStage primary stage
+     * @param title title of message
+     * @param message message itself
+     */
     public Message(Stage primaryStage, String title, String message) {
         Parent root;
         try {

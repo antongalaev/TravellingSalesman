@@ -54,6 +54,7 @@ public class SolverService extends Service<Route> {
     /**
      * Implementation of the task creation method.
      * Creates a new task for TSP solving n the given matrix.
+     *
      * @return new task
      */
     @Override

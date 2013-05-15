@@ -74,6 +74,10 @@ public class Solver {
                 waiting.add(mx);
                 mx = minMx;
             }
+            // No solution at all
+            if (mx.getCost() == Integer.MAX_VALUE) {
+                return null;
+            }
             // Current size
             int s = mx.getSize();
             // Subtracting minimums

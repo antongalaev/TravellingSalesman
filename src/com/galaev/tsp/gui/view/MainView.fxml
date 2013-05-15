@@ -10,6 +10,7 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.image.Image?>
 
+<?import javafx.scene.text.Text?>
 <BorderPane prefHeight="400.0" prefWidth="500.0" xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.galaev.tsp.gui.controllers.MainController">
     <center>
@@ -21,6 +22,8 @@
                     <padding>
                         <Insets top="5" bottom="25" left="5" right="25" />
                     </padding>
+                    <Text fx:id="startText" id="start-text" GridPane.halignment="CENTER" GridPane.valignment="CENTER"
+                          GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS"/>
                 </GridPane>
             </Tab>
             <Tab  fx:id="canvasTab">
@@ -34,6 +37,22 @@
     </center>
     <top>
         <VBox>
+            <HBox id="header" onMouseClicked="#headerClick" onMousePressed="#headerPress" onMouseDragged="#headerDrag">
+                <padding>
+                    <Insets bottom="5" top="5"/>
+                </padding>
+                <Button fx:id="titleButton" id="window-icon">
+                    <graphic>
+                        <ImageView>
+                            <Image url="@../resources/icons/icon.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button id="window-min" onAction="#minimize" contentDisplay="GRAPHIC_ONLY"/>
+                <Button id="window-max" onAction="#maximize" contentDisplay="GRAPHIC_ONLY"/>
+                <Button id="window-close" onAction="#exit"/>
+            </HBox>
             <MenuBar>
                 <Menu fx:id="fileMenu">
                     <MenuItem fx:id="newMenuItem" onAction="#createNew">

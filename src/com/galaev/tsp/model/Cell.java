@@ -21,19 +21,19 @@ import java.io.Serializable;
  */
 public class Cell implements Serializable {
 
-    /*
+    /**
      * Start point index.
      * Read-only property.
      */
     private int from;
 
-    /*
+    /**
      * End point index.
      * Read-only property.
      */
     private int to;
 
-    /*
+    /**
      * Value of the cell, that represents
      * the cost of the transition.
      * Read-write property.

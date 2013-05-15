@@ -7,13 +7,23 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
+/**
+ * A controller class for prompt messages.
+ *
+ * @author Anton Galaev
+ */
 public class PromptController {
 
-    @FXML
-    private TextField textField;
-    @FXML
-    private Button button;
+    /* Text field */
+    @FXML private TextField textField;
+    /* OK Button */
+    @FXML private Button button;
 
+    /**
+     * Reads value from text field.
+     *
+     * @param actionEvent
+     */
     public void buttonClick(ActionEvent actionEvent) {
         Prompt.buttonPressed = true;
         Prompt.result = textField.getText();

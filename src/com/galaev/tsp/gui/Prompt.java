@@ -9,12 +9,30 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
+/**
+ * Main class for a Prompt Window.
+ *
+ * @author Anton Galaev
+ */
 public class Prompt {
 
+    /** Result of prompt */
     public static String result;
+    /** If button was pressed */
     public static boolean buttonPressed;
+    /** The stage  */
     private Stage stage;
 
+    /**
+     * Public constructor for a Prompt.
+     * Creates a modal window with label,
+     * text field and message,
+     * provided as parameters.
+     *
+     * @param primaryStage primary stage
+     * @param title title of message
+     * @param message message itself
+     */
     public Prompt(Stage primaryStage, String title, String message) {
         Parent root;
         try {
@@ -37,6 +55,10 @@ public class Prompt {
         stage.setScene(scene);
     }
 
+    /**
+     * Shows the prompt window.
+     * @return
+     */
     public boolean show() {
         buttonPressed = false;
         stage.showAndWait();

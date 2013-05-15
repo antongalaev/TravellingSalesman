@@ -12,6 +12,7 @@ import javafx.animation.FillTransition;
 import javafx.animation.FillTransitionBuilder;
 import javafx.animation.StrokeTransition;
 import javafx.animation.StrokeTransitionBuilder;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -26,8 +27,10 @@ import javafx.event.Event;
 import javafx.event.EventDispatchChain;
 import javafx.event.EventDispatcher;
 import javafx.event.EventHandler;
+import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -61,6 +64,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextBuilder;
 import javafx.stage.FileChooser;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -91,36 +95,45 @@ import java.util.Scanner;
  */
 public class MainController implements Initializable {
 
-    public static final double ANIMATION_DELAY = 0.5;
-    public TabPane tabPane;
-    public Tab canvasTab;
-    public Tab tableTab;
-    public Tab resultTab;
-    public Pane canvas;
-    public GridPane table;
-    public TextArea result;
-    public Menu fileMenu;
-    public Menu editMenu;
-    public Menu solveMenu;
-    public Menu settingsMenu;
-    public Menu languageMenu;
-    public Menu inputModeMenu;
-    public MenuItem newMenuItem;
-    public MenuItem openMenuItem;
-    public MenuItem saveMenuItem;
-    public MenuItem exitMenuItem;
-    public MenuItem clearMenuItem;
-    public MenuItem solveMenuItem;
-    public MenuItem abortMenuItem;
-    public MenuItem randomMenuItem;
-    public MenuItem maxRandomMenuItem;
-    public CheckMenuItem symmetricMode;
-    public RadioMenuItem tableMode;
-    public RadioMenuItem canvasMode;
-    public Button newButton;
-    public Button openButton;
-    public Button saveButton;
-    public Button solveButton;
+    /** Infinity sign for table */
+    private static final String INFINITY_SIGN = "\u221e";
+    /** Animation speed delay */
+    private static final double ANIMATION_DELAY = 0.5;
+
+    /* Main window controls and components */
+    @FXML private TabPane tabPane;
+    @FXML private Tab canvasTab;
+    @FXML private Tab tableTab;
+    @FXML private Tab resultTab;
+    @FXML private Pane canvas;
+    @FXML private GridPane table;
+    @FXML private TextArea result;
+    @FXML private Menu fileMenu;
+    @FXML private Menu editMenu;
+    @FXML private Menu solveMenu;
+    @FXML private Menu settingsMenu;
+    @FXML private Menu languageMenu;
+    @FXML private Menu inputModeMenu;
+    @FXML private MenuItem newMenuItem;
+    @FXML private MenuItem openMenuItem;
+    @FXML private MenuItem saveMenuItem;
+    @FXML private MenuItem exitMenuItem;
+    @FXML private MenuItem clearMenuItem;
+    @FXML private MenuItem solveMenuItem;
+    @FXML private MenuItem abortMenuItem;
+    @FXML private MenuItem randomMenuItem;
+    @FXML private MenuItem maxRandomMenuItem;
+    @FXML private CheckMenuItem symmetricMode;
+    @FXML private RadioMenuItem tableMode;
+    @FXML private RadioMenuItem canvasMode;
+    @FXML private Button newButton;
+    @FXML private Button openButton;
+    @FXML private Button saveButton;
+    @FXML private Button solveButton;
+    @FXML private Button titleButton;
+    @FXML private Text startText;
+
+    /* Internationalized strings */
     private String blockTransition;
     private String allowTransition;
     private String rename;
@@ -133,19 +146,32 @@ public class MainController implements Initializable {
     private String infoTitle;
     private String infoNumberMessage;
     private String infoRandomMessage;
+    private String infoSolutionMessage;
     private String errorTitle;
     private String errorFileMessage;
     private String routeShortest;
     private String routeNode;
     private String routeCost;
 
+    /** Localization resource bundle */
     private ResourceBundle bundle;
+    /** File chooser */
     private FileChooser chooser;
+    /** Service object for solving */
     private SolverService service;
+    /** The Matrix */
     private Matrix matrix;
+    /** Node names*/
     private Map<Integer, StringProperty> names;
+    /** Maximum value for random table fill */
     private int maxRandomValue = 10;
+    /** Current number of nodes in canvas mode */
     private int nodeCounter = 0;
+    /* Window resizing utilities */
+    private boolean maximized;
+    private Rectangle2D backupWindowBounds;
+    private double mouseDragOffsetX = 0;
+    private double mouseDragOffsetY = 0;
 
     /**
      * Opens a file dialog, that allows
@@ -153,25 +179,30 @@ public class MainController implements Initializable {
      * Creates a table based on the file data.
      *
      * @param actionEvent action event
-     * @throws FileNotFoundException
+     * @throws FileNotFoundException if file not found
      */
-    public void openFile(ActionEvent actionEvent)
+    @FXML private void openFile(ActionEvent actionEvent)
             throws FileNotFoundException {
+        // Choose the file
         File file = chooser.showOpenDialog(table.getScene().getWindow());
-        if (file != null) {
-            String fileName = file.getName();
+        if (file != null) { // If chosen
+            String fileName = file.getName(); // Get extension next
             switch (fileName.substring(fileName.lastIndexOf("."))) {
-                case ".txt":
+                case ".txt": // Read txt file
                     Scanner inp = new Scanner(file);
-                    matrix = new Matrix(inp);
+                    try{
+                        matrix = new Matrix(inp);
+                    } catch (Exception e) {
+                        showMessage(errorTitle, errorFileMessage);
+                        return;
+                    }
                     break;
-                case ".tsp":
+                case ".tsp": // De-serialize tsp file
                     try {
                         ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
                         matrix = (Matrix) ois.readObject();
                     } catch (Exception e) {
                         showMessage(errorTitle, errorFileMessage);
-                        e.printStackTrace();
                         return;
                     }
                     break;
@@ -193,6 +224,7 @@ public class MainController implements Initializable {
             for (Cell cell : matrix) {
                 attachCell(cell);
             }
+            // Set flags
             saveMenuItem.setDisable(false);
             saveButton.setDisable(false);
             solveButton.setDisable(false);
@@ -202,13 +234,24 @@ public class MainController implements Initializable {
         }
     }
 
-    public void createNew(ActionEvent actionEvent) {
+    /**
+     * Creates a new table with size,
+     * questioned in pop-up dialog.
+     *
+     * @param actionEvent event
+     */
+    @FXML private void createNew(ActionEvent actionEvent) {
+        // Prompt about number
         Prompt prompt = new Prompt((Stage) table.getScene().getWindow(),
                 numberTitle, numberMessage);
         int number;
-        if (prompt.show()) {
+        if (prompt.show()) { // If got number
             try {
                 number = Integer.parseInt(Prompt.result);
+                if (number < 3 || number > 20) {
+                    showMessage(infoTitle, infoNumberMessage);
+                    return;
+                }
             } catch (NumberFormatException nfe) {
                 showMessage(infoTitle, infoNumberMessage);
                 return;
@@ -232,7 +275,7 @@ public class MainController implements Initializable {
                 attachCell(cell);
             }
         }
-        tableModeOn(new ActionEvent());
+        // Set flags
         saveMenuItem.setDisable(false);
         saveButton.setDisable(false);
         solveButton.setDisable(false);
@@ -241,34 +284,41 @@ public class MainController implements Initializable {
         tableMode.setSelected(true);
     }
 
-    public void saveFile(ActionEvent actionEvent) {
+    /**
+     * Saves matrix in a chosen file .txt as text
+     * or in .tsp file as serialized matrix object.
+     *
+     * @param actionEvent event
+     */
+    @FXML private void saveFile(ActionEvent actionEvent) {
+        // Show save dialog
         File file = chooser.showSaveDialog(table.getScene().getWindow());
-        if (file != null) {
-            List<Cell> cells = extractCells();
+        if (file != null) { // If chosen
+            List<Cell> cells = extractCells(); // Extract cells from table
             if (cells.size() < 9) {
                 showMessage(infoTitle, infoNumberMessage);
                 return;
             }
-            matrix = new Matrix(cells);
-            String fileName = file.getName();
+            matrix = new Matrix(cells); // Create matrix
+            String fileName = file.getName(); // Get extension
             switch (fileName.substring(fileName.lastIndexOf("."))) {
-                case ".txt":
+                case ".txt": // Save as text
                     try {
                         FileOutputStream fos = new FileOutputStream(file);
                         PrintStream ps = new PrintStream(fos);
                         ps.print(matrix);
                         ps.close();
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        showMessage(errorTitle, errorFileMessage);
                     }
                     break;
-                case ".tsp":
+                case ".tsp": // Save as serialized object
                     try {
                         ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file));
                         oos.writeObject(matrix);
                         oos.close();
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        showMessage(errorTitle, errorFileMessage);
                     }
                     break;
                 default:
@@ -277,7 +327,14 @@ public class MainController implements Initializable {
         }
     }
 
-    public void useSymmetricTable(ActionEvent actionEvent) {
+    /**
+     * Switch table symmetric mode.
+     * The table becomes symmetric over the main diagonal.
+     *
+     * @param actionEvent event
+     */
+    @FXML private void useSymmetricTable(ActionEvent actionEvent) {
+        // Collect all text fields from table
         ObservableList<Node> nodes = table.getChildren();
         int size = GridPane.getColumnIndex(nodes.get(nodes.size() - 1));
         TextField[][] textFields = new TextField[size][size];
@@ -287,17 +344,27 @@ public class MainController implements Initializable {
                 textFields[i][j] = (TextField) nodes.get(k++);
             }
         }
-        if (symmetricMode.isSelected()) {
+        if (symmetricMode.isSelected()) { // Switch symmetric mode on
             for (int i = 0; i < size; ++ i) {
                 for (int j = i + 1; j < size; ++ j) {
                     textFields[j][i].textProperty().bindBidirectional(textFields[i][j].textProperty());
                 }
             }
-
+        } else { // Switch symmetric mode off
+            for (int i = 0; i < size; ++ i) {
+                for (int j = i + 1; j < size; ++ j) {
+                    textFields[j][i].textProperty().unbindBidirectional(textFields[i][j].textProperty());
+                }
+            }
         }
     }
 
-    public void solve() {
+    /**
+     * Solves the problem, first
+     * chooses which mode is on,
+     * whether canvas or table.
+     */
+    @FXML private void solve() {
         switchControls(true);
         if (canvasMode.isSelected()) {
             solveCanvas();
@@ -306,11 +373,21 @@ public class MainController implements Initializable {
         }
     }
 
-    public void abort(ActionEvent actionEvent) {
+    /**
+     * Aborts solving.
+     *
+     * @param actionEvent click event
+     */
+    @FXML private void abort(ActionEvent actionEvent) {
         service.cancel();
     }
 
-    public void tableModeOn(ActionEvent actionEvent) {
+    /**
+     * Turns on the table mode.
+     *
+     * @param actionEvent click event
+     */
+    @FXML private void tableModeOn(ActionEvent actionEvent) {
         if (tableTab.isDisabled()) {
             // Clear the canvas
             canvas.getChildren().clear();
@@ -324,7 +401,12 @@ public class MainController implements Initializable {
         }
     }
 
-    public void canvasModeOn(ActionEvent actionEvent) {
+    /**
+     * Turns on the canvas mode.
+     *
+     * @param actionEvent click event
+     */
+    @FXML private void canvasModeOn(ActionEvent actionEvent) {
         if (! tableTab.isDisabled()) {
             // Clear the canvas, the table and the names map
             canvas.getChildren().clear();
@@ -342,11 +424,22 @@ public class MainController implements Initializable {
         }
     }
 
-    public void clearCanvas(ActionEvent actionEvent) {
+    /**
+     * Clears the canvas.
+     *
+     * @param actionEvent click event
+     */
+    @FXML private void clearCanvas(ActionEvent actionEvent) {
         canvas.getChildren().clear();
     }
 
-    public void addNode(MouseEvent mouseEvent) {
+    /**
+     * Adds node to the canvas.
+     * Node is added in MouseEvent coordinates.
+     *
+     * @param mouseEvent click event
+     */
+    @FXML private void addNode(MouseEvent mouseEvent) {
         if (mouseEvent.getTarget().equals(canvas) && canvasMode.isSelected()) {
             double fontSize = canvas.getHeight() / 25;
             if (canvas.getWidth() < canvas.getHeight()) {
@@ -362,6 +455,11 @@ public class MainController implements Initializable {
         }
     }
 
+    /**
+     * Initializes controller.
+     * @param url url
+     * @param resourceBundle resource bundle
+     */
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         updateLanguage(Locale.ENGLISH);
@@ -380,21 +478,32 @@ public class MainController implements Initializable {
         canvasMode.setToggleGroup(toggleGroup);
         canvasTab.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
-            public void changed(ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean aBoolean2) {
+            public void changed(ObservableValue<? extends Boolean> observableValue,
+                                Boolean aBoolean, Boolean aBoolean2) {
 
             }
         });
-
     }
 
-    public void exit(ActionEvent actionEvent) {
-        System.exit(0);
+    /**
+     * Exits application.
+     *
+     * @param actionEvent click event
+     */
+    @FXML private void exit(ActionEvent actionEvent) {
+        Platform.exit();
     }
 
-    public void setMaxRandomValue(ActionEvent actionEvent) {
+    /**
+     * Sets new maximum value for table random fill.
+     * Value is got through a popup dialog.
+     *
+     * @param actionEvent click event
+     */
+    @FXML private void setMaxRandomValue(ActionEvent actionEvent) {
         Prompt prompt = new Prompt((Stage) table.getScene().getWindow(),
                 maxRandTitle, maxRandMessage);
-        if (prompt.show()) {
+        if (prompt.show()) { // If chosen
             try {
                 int value = Integer.parseInt(Prompt.result);
                 if (value <= 0) {
@@ -408,7 +517,12 @@ public class MainController implements Initializable {
         }
     }
 
-    public void randomFill(ActionEvent actionEvent) {
+    /**
+     * Fills the table with random numbers.
+     *
+     * @param actionEvent event
+     */
+    @FXML private void randomFill(ActionEvent actionEvent) {
         Random random = new Random();
         ObservableList<Node> nodes = table.getChildren();
         int size = GridPane.getColumnIndex(nodes.get(nodes.size() - 1));
@@ -436,7 +550,7 @@ public class MainController implements Initializable {
         int value = cell.getValue();
         // Create a cell for the grid pane:
         final TextField textCell = TextFieldBuilder.create()
-                .text(value == -1 ? "\u221e" : String.valueOf(value))
+                .text(value == -1 ? INFINITY_SIGN : String.valueOf(value))
                 .maxHeight(Double.MAX_VALUE)
                 .maxWidth(Double.MAX_VALUE)
                 .editable(from != to)
@@ -463,7 +577,7 @@ public class MainController implements Initializable {
             // Context menu item for blocking or allowing transition
             final MenuItem menuItem = new MenuItem(blockTransition);
             menuItem.setOnAction(new EventHandler<ActionEvent>() {
-                public boolean blocked = false;
+                @FXML private boolean blocked = false;
                 int value;
                 @Override
                 public void handle(ActionEvent actionEvent) {
@@ -473,7 +587,7 @@ public class MainController implements Initializable {
                         blocked = false;
                     } else {
                         value = Integer.parseInt(textCell.getText());
-                        textCell.setText("\u221e");
+                        textCell.setText(INFINITY_SIGN);
                         menuItem.setText(allowTransition);
                         blocked = true;
                     }
@@ -489,7 +603,9 @@ public class MainController implements Initializable {
             public void changed(ObservableValue<? extends String> observable,
                                 String oldValue, String newValue) {
                 try {
-                    Integer.parseInt(newValue);
+                    if (! newValue.equals(INFINITY_SIGN)){
+                        Integer.parseInt(newValue);
+                    }
                 } catch (NumberFormatException e) {
                     textCell.setText(oldValue);
                 }
@@ -508,12 +624,14 @@ public class MainController implements Initializable {
      * @see com.galaev.tsp.model.Cell
      */
     private void attachHeadings(int size) {
-        table.add(LabelBuilder.create()
+        Label corner = LabelBuilder.create()
                 .text("T")
                 .minWidth(20)
                 .maxWidth(Double.POSITIVE_INFINITY)
                 .alignment(Pos.CENTER)
-                .build(), 0, 0);
+                .build();
+        table.add(corner, 0, 0);
+        GridPane.setHgrow(corner, Priority.ALWAYS);
         for (int i = 1; i < size; ++ i) {
             final int nodeNumber = i;
             LabelBuilder labelBuilder  = LabelBuilder.create()
@@ -550,9 +668,16 @@ public class MainController implements Initializable {
 
     }
 
+    /**
+     * Solves Travelling Salesman Problem
+     * in canvas mode. Reads distances between
+     * nodes on canvas and creates matrix out of it.
+     */
     private void solveCanvas() {
+        // Circles and titles on canvas
         final List<Circle> circles = new ArrayList<>();
         final List<Text> titles = new ArrayList<>();
+        // Read them
         for (Node node : canvas.getChildren()) {
             if (node instanceof Circle) {
                 circles.add((Circle) node);
@@ -566,6 +691,7 @@ public class MainController implements Initializable {
             showMessage(infoTitle, infoNumberMessage);
             return;
         }
+        // Temp matrix as jagged array
         int[][] tempMatrix = new int[size][size];
         for (int i = 0; i < size; ++ i) {
             for (int j = i; j < size; ++ j) {
@@ -577,13 +703,20 @@ public class MainController implements Initializable {
                 }
             }
         }
+        // Create matrix and service
         matrix = new Matrix(tempMatrix);
         service = new SolverService();
         service.setMatrix(matrix);
+        // Set action on the end of solving
         service.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
             @Override
             public void handle(WorkerStateEvent event) {
                 Route route = (Route) event.getSource().getValue();
+                if (route == null) {
+                    showMessage(infoTitle, infoSolutionMessage);
+                    switchControls(false);
+                    return;
+                }
                 printRouteInfo(route);
                 Line[] lines = new Line[size];
                 createLines(lines, circles.toArray(new Circle[circles.size()]), route);
@@ -594,43 +727,66 @@ public class MainController implements Initializable {
                 switchControls(false);
             }
         });
+        // On abort
         service.setOnCancelled(new EventHandler<WorkerStateEvent>() {
             @Override
             public void handle(WorkerStateEvent workerStateEvent) {
                 switchControls(false);
             }
         });
+        // Start solving
         service.start();
     }
 
+    /**
+     * Solves Travelling Salesman Problem
+     * in table mode. Reads distances from
+     * the table and creates matrix out of it.
+     */
     private void solveTable() {
+        // Read cells out of the table
         List<Cell> cells = extractCells();
         if (cells.size() < 9 || cells.size() > 400) {
             showMessage(infoTitle, infoNumberMessage);
             return;
         }
         tabPane.getSelectionModel().select(canvasTab);
+        // Create matrix and service
         matrix = new Matrix(cells);
         service = new SolverService();
         service.setMatrix(matrix);
+        // Set action on the end of solving
         service.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
             @Override
             public void handle(WorkerStateEvent event) {
                 Route route = (Route) event.getSource().getValue();
+                if (route == null) {
+                    showMessage(infoTitle, infoSolutionMessage);
+                    switchControls(false);
+                    return;
+                }
                 printRouteInfo(route);
                 drawRoute(route);
                 switchControls(false);
             }
         });
+        // On abort
         service.setOnCancelled(new EventHandler<WorkerStateEvent>() {
             @Override
             public void handle(WorkerStateEvent workerStateEvent) {
                  switchControls(false);
             }
         });
+        // Start solving
         service.start();
     }
 
+    /**
+     * Extracts all values from the table as
+     * a list of Cell's objects.
+     *
+     * @return list of cells
+     */
     private List<Cell> extractCells() {
         List<Cell> cells = new ArrayList<>();
         ObservableList<Node> nodes = table.getChildren();
@@ -639,12 +795,17 @@ public class MainController implements Initializable {
             TextField textField = (TextField) nodes.get(i);
             int from = GridPane.getRowIndex(textField) - 1;
             int to = GridPane.getColumnIndex(textField) - 1;
-            int value = textField.getText().equals("\u221e") ? -1 : Integer.parseInt(textField.getText());
+            int value = textField.getText().equals(INFINITY_SIGN) ? -1 : Integer.parseInt(textField.getText());
             cells.add(new Cell(value, from, to));
         }
         return cells;
     }
 
+    /**
+     * Draws the final route on canvas.
+     *
+     * @param route route to draw
+     */
     private void drawRoute(Route route) {
         // Clear the "canvas"
         canvas.getChildren().clear();
@@ -678,6 +839,14 @@ public class MainController implements Initializable {
         canvas.getChildren().addAll(titles);
     }
 
+    /**
+     * Creates lines between nodes,
+     * according to the route.
+     *
+     * @param lines lines between nodes
+     * @param circles nodes
+     * @param route route
+     */
     private void createLines(Line[] lines, Circle[] circles, Route route) {
         int n = route.getRoute().size() - 1;
         for (int i = 0; i < n; ++ i) {
@@ -714,8 +883,15 @@ public class MainController implements Initializable {
         }
     }
 
-    private Circle createCircle(int i, double x, double y) {
-        final int nodeNumber = i;
+    /**
+     * Creates a circle, that represents a node.
+     *
+     * @param i node number
+     * @param x node x coordinate
+     * @param y node y coordinate
+     * @return created circle
+     */
+    private Circle createCircle(final int i, double x, double y) {
         // Create circle
         final Circle circle = new Circle(x, y, 10);
         circle.getStyleClass().add("circle");
@@ -741,7 +917,7 @@ public class MainController implements Initializable {
                                         renameTitle, renameMessage);
                                 if (prompt.show()) {
                                     String newName = Prompt.result;
-                                    names.get(nodeNumber).set(newName);
+                                    names.get(i).set(newName);
                                 }
                             }
                         })
@@ -756,6 +932,15 @@ public class MainController implements Initializable {
         return circle;
     }
 
+    /**
+     * Creates text around a circle (for a node).
+     *
+     * @param i node number
+     * @param size size of matrix
+     * @param alpha angle
+     * @param circle text's circle
+     * @return created text
+     */
     private Text createText(int i, final double size, double alpha, Circle circle) {
         final String name = names.get(i).get();
         VPos position = VPos.BOTTOM;
@@ -773,9 +958,12 @@ public class MainController implements Initializable {
                 .textOrigin(position)
                 .font(Font.font("Times New Roman", size))
                 .build();
+        // Bind names
         text.textProperty().bind(names.get(i));
+        // Bind position
         text.xProperty().bind(Bindings.add(circle.centerXProperty(), offsetX));
         text.yProperty().bind(Bindings.add(circle.centerYProperty(), offsetY));
+        // Change position on changes
         canvas.heightProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
@@ -793,7 +981,17 @@ public class MainController implements Initializable {
         return text;
     }
 
+    /**
+     * Sets offsets for a Text.
+     *
+     * @param beta angle
+     * @param size size of matrix
+     * @param name node name
+     * @param offsetX x-offset
+     * @param offsetY y-offset
+     */
     private void setOffsets(double beta, double size, String name, DoubleProperty offsetX, DoubleProperty offsetY) {
+        // Count offsets
         if (beta < Math.PI / 4) {
             offsetY.set(- size);
         } else if (beta < Math.PI / 2) {
@@ -817,7 +1015,15 @@ public class MainController implements Initializable {
         }
     }
 
+    /**
+     * Creates a line between two circles.
+     *
+     * @param c1 first circle
+     * @param c2 second circle
+     * @return created line
+     */
     private Line createLine(Circle c1, Circle c2) {
+        // Build line
         Line line = LineBuilder.create()
                 .styleClass("line")
                 .effect(new Lighting())
@@ -833,6 +1039,11 @@ public class MainController implements Initializable {
         return line;
     }
 
+    /**
+     * Shows popup message.
+     * @param title title of the message
+     * @param message the message itself
+     */
     private void showMessage(String title, String message) {
          new Message((Stage) table.getScene().getWindow(), title, message);
     }
@@ -860,6 +1071,13 @@ public class MainController implements Initializable {
 
     }
 
+    /**
+     * Switches all controls.
+     * Disables on solving start.
+     * Enables on solving end.
+     *
+     * @param value disable or enable
+     */
     private void switchControls(boolean value) {
         saveMenuItem.setDisable(value);
         randomMenuItem.setDisable(value);
@@ -878,20 +1096,42 @@ public class MainController implements Initializable {
         abortMenuItem.setDisable(! value);
     }
 
-    public void setEnglish(ActionEvent actionEvent) {
+    /**
+     * Sets english language.
+     *
+     * @param actionEvent event
+     */
+    @FXML private void setEnglish(ActionEvent actionEvent) {
         updateLanguage(Locale.ENGLISH);
     }
 
-    public void setRussian(ActionEvent actionEvent) {
+    /**
+     * Sets russian language.
+     *
+     * @param actionEvent event
+     */
+    @FXML private void setRussian(ActionEvent actionEvent) {
         updateLanguage(new Locale("ru"));
     }
 
-    public void setDeutsch(ActionEvent actionEvent) {
+    /**
+     * Sets german language.
+     *
+     * @param actionEvent event
+     */
+    @FXML private void setDeutsch(ActionEvent actionEvent) {
         updateLanguage(Locale.GERMAN);
     }
 
+    /**
+     * Applies given localization to the application.
+     * All l10ns are contained in resource bundle Bundle.
+     *
+     * @param locale localization
+     */
     private void updateLanguage(Locale locale) {
         bundle = ResourceBundle.getBundle("com.galaev.tsp.gui.resources.bundles.Bundle", locale);
+        titleButton.setText(utfProperty("title"));
         canvasTab.setText(utfProperty("canvas"));
         tableTab.setText(utfProperty("table"));
         resultTab.setText(utfProperty("result"));
@@ -913,6 +1153,7 @@ public class MainController implements Initializable {
         canvasMode.setText(utfProperty("settings.input.canvas"));
         maxRandomMenuItem.setText(utfProperty("settings.maxrandom"));
         languageMenu.setText(utfProperty("settings.language"));
+        startText.setText(utfProperty("start.text"));
         blockTransition = utfProperty("block");
         allowTransition = utfProperty("allow");
         rename = utfProperty("rename");
@@ -925,6 +1166,7 @@ public class MainController implements Initializable {
         infoTitle = utfProperty("info.title");
         infoNumberMessage = utfProperty("info.number.message");
         infoRandomMessage = utfProperty("info.random.message");
+        infoSolutionMessage = utfProperty("info.solution");
         errorTitle = utfProperty("error.title");
         errorFileMessage = utfProperty("error.file.message");
         routeCost = utfProperty("route.cost");
@@ -932,6 +1174,12 @@ public class MainController implements Initializable {
         routeShortest = utfProperty("route.shortest");
     }
 
+    /**
+     * Gets property utf-8 encoded from resource bundle.
+     *
+     * @param property property name
+     * @return property value utf-8 encoded
+     */
     private String utfProperty(String property) {
         String value = bundle.getString(property);
         try {
@@ -942,9 +1190,85 @@ public class MainController implements Initializable {
         }
     }
 
+    /**
+     * Counts distance between two circles.
+     *
+     * @param c1 first circle
+     * @param c2 second circle
+     * @return distance
+     */
     private int distance(Circle c1, Circle c2) {
         double dx2 = (c1.getCenterX() - c2.getCenterX()) * (c1.getCenterX() - c2.getCenterX());
         double dy2 = (c1.getCenterY() - c2.getCenterY()) * (c1.getCenterY() - c2.getCenterY());
         return (int) (Math.sqrt(dx2 + dy2) + 0.5);
+    }
+
+    /**
+     * Minimizes application window.
+     *
+     * @param actionEvent click event
+     */
+    @FXML private void minimize(ActionEvent actionEvent) {
+        ((Stage) table.getScene().getWindow()).setIconified(true);
+    }
+
+    /**
+     * Maximizes application window.
+     *
+     * @param event click event
+     */
+    @FXML private void maximize(Event event) {
+        Stage stage = (Stage) table.getScene().getWindow();
+        final Screen screen = Screen.getScreensForRectangle(stage.getX(), stage.getY(), 1, 1).get(0);
+        if (maximized) {
+            maximized = false;
+            if (backupWindowBounds != null) {
+                stage.setX(backupWindowBounds.getMinX());
+                stage.setY(backupWindowBounds.getMinY());
+                stage.setWidth(backupWindowBounds.getWidth());
+                stage.setHeight(backupWindowBounds.getHeight());
+            }
+        } else {
+            maximized = true;
+            backupWindowBounds = new Rectangle2D(stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
+            stage.setX(screen.getVisualBounds().getMinX());
+            stage.setY(screen.getVisualBounds().getMinY());
+            stage.setWidth(screen.getVisualBounds().getWidth());
+            stage.setHeight(screen.getVisualBounds().getHeight());
+        }
+    }
+
+    /**
+     * Handles mouse click on header.
+     *
+     * @param event mouse event
+     */
+    @FXML private void headerClick(MouseEvent event) {
+        if (event.getClickCount() == 2) {
+            maximize(event);
+        }
+    }
+
+    /**
+     * Handles mouse press on header.
+     *
+     * @param event mouse event
+     */
+    @FXML private void headerPress(MouseEvent event) {
+        mouseDragOffsetX = event.getSceneX();
+        mouseDragOffsetY = event.getSceneY();
+    }
+
+    /**
+     * Handles mouse drag on header.
+     *
+     * @param event mouse event
+     */
+    @FXML private void headerDrag(MouseEvent event) {
+        if (! maximized) {
+            Stage stage = (Stage) table.getScene().getWindow();
+            stage.setX(event.getScreenX() - mouseDragOffsetX);
+            stage.setY(event.getScreenY() - mouseDragOffsetY);
+        }
     }
 }

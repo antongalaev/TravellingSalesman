@@ -4,8 +4,8 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 /**
  * The main class of the program,
@@ -31,8 +31,7 @@ public class MainWindow extends Application {
         Scene scene = new Scene(root, 700, 500);
         scene.getStylesheets().add("com/galaev/tsp/gui/resources/styles/main.css");
         primaryStage.setScene(scene);
-        primaryStage.setTitle("Travelling Salesman");
-        primaryStage.getIcons().add(new Image("com/galaev/tsp/gui/resources/icons/icon.png"));
+        primaryStage.initStyle(StageStyle.UNDECORATED);
         primaryStage.show();
     }
 
