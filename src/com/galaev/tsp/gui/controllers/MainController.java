@@ -119,6 +119,7 @@ public class MainController implements Initializable {
     @FXML private MenuItem saveMenuItem;
     @FXML private MenuItem exitMenuItem;
     @FXML private MenuItem clearMenuItem;
+    @FXML private MenuItem clearResMenuItem;
     @FXML private MenuItem solveMenuItem;
     @FXML private MenuItem abortMenuItem;
     @FXML private MenuItem randomMenuItem;
@@ -431,6 +432,15 @@ public class MainController implements Initializable {
      */
     @FXML private void clearCanvas(ActionEvent actionEvent) {
         canvas.getChildren().clear();
+    }
+
+    /**
+     * Clears the canvas.
+     *
+     * @param actionEvent click event
+     */
+    @FXML private void clearResult(ActionEvent actionEvent) {
+       result.clear();
     }
 
     /**
@@ -1084,6 +1094,7 @@ public class MainController implements Initializable {
         newMenuItem.setDisable(value);
         openMenuItem.setDisable(value);
         clearMenuItem.setDisable(value);
+        clearResMenuItem.setDisable(value);
         solveMenuItem.setDisable(value);
         maxRandomMenuItem.setDisable(value);
         symmetricMode.setDisable(value);
@@ -1146,6 +1157,7 @@ public class MainController implements Initializable {
         symmetricMode.setText(utfProperty("edit.symmetric"));
         randomMenuItem.setText(utfProperty("edit.random"));
         clearMenuItem.setText(utfProperty("edit.clear"));
+        clearResMenuItem.setText(utfProperty("edit.clear.result"));
         solveMenuItem.setText(utfProperty("solve.solve"));
         abortMenuItem.setText(utfProperty("solve.abort"));
         inputModeMenu.setText(utfProperty("settings.input"));

@@ -84,6 +84,7 @@
                     <CheckMenuItem fx:id="symmetricMode" onAction="#useSymmetricTable"/>
                     <SeparatorMenuItem mnemonicParsing="false" />
                     <MenuItem fx:id="clearMenuItem" onAction="#clearCanvas" />
+                    <MenuItem fx:id="clearResMenuItem" onAction="#clearResult" />
                 </Menu>
                 <Menu fx:id="solveMenu">
                     <MenuItem fx:id="solveMenuItem" onAction="#solve">
