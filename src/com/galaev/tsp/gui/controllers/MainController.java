@@ -229,6 +229,7 @@ public class MainController implements Initializable {
             saveMenuItem.setDisable(false);
             saveButton.setDisable(false);
             solveButton.setDisable(false);
+            solveMenuItem.setDisable(false);
             randomMenuItem.setDisable(false);
             symmetricMode.setDisable(false);
             tableMode.setSelected(true);
@@ -280,6 +281,7 @@ public class MainController implements Initializable {
         saveMenuItem.setDisable(false);
         saveButton.setDisable(false);
         solveButton.setDisable(false);
+        solveMenuItem.setDisable(false);
         randomMenuItem.setDisable(false);
         symmetricMode.setDisable(false);
         tableMode.setSelected(true);
@@ -395,6 +397,7 @@ public class MainController implements Initializable {
             names = new HashMap<>();
             // Set selections and disable buttons
             solveButton.setDisable(true);
+            solveMenuItem.setDisable(true);
             saveMenuItem.setDisable(true);
             saveButton.setDisable(true);
             tableTab.setDisable(false);
@@ -418,6 +421,7 @@ public class MainController implements Initializable {
             tabPane.getSelectionModel().select(canvasTab);
             tableTab.setDisable(true);
             solveButton.setDisable(false);
+            solveMenuItem.setDisable(false);
             saveMenuItem.setDisable(false);
             saveButton.setDisable(false);
             randomMenuItem.setDisable(true);
@@ -479,6 +483,7 @@ public class MainController implements Initializable {
         saveMenuItem.setDisable(true);
         saveButton.setDisable(true);
         solveButton.setDisable(true);
+        solveMenuItem.setDisable(true);
         randomMenuItem.setDisable(true);
         symmetricMode.setDisable(true);
         tableMode.setSelected(true);
@@ -699,6 +704,7 @@ public class MainController implements Initializable {
         final int size = circles.size();
         if (size < 3 || size > 20) {
             showMessage(infoTitle, infoNumberMessage);
+            switchControls(false);
             return;
         }
         // Temp matrix as jagged array
@@ -758,6 +764,7 @@ public class MainController implements Initializable {
         List<Cell> cells = extractCells();
         if (cells.size() < 9 || cells.size() > 400) {
             showMessage(infoTitle, infoNumberMessage);
+            switchControls(false);
             return;
         }
         tabPane.getSelectionModel().select(canvasTab);
