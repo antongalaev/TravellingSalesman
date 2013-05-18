@@ -293,7 +293,9 @@ public class Matrix
         }
         for (int i = 0; i < size; ++ i) {
             for (int j = 0; j < size; ++ j) {
-                matrix.add(new Cell(Integer.parseInt(values[j]), i, j));
+                int value = Integer.parseInt(values[j]);
+                if (i == j) value = -1;
+                matrix.add(new Cell(value, i, j));
             }
             if (inp.hasNextLine()) {
                 line = inp.nextLine();
@@ -380,7 +382,6 @@ public class Matrix
             } else {
                 throw new NoSuchElementException("MatrixIterator.next()");
             }
-
         }
 
         @Override
