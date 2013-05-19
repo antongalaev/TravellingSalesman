@@ -436,6 +436,8 @@ public class MainController implements Initializable {
      */
     @FXML private void clearCanvas(ActionEvent actionEvent) {
         canvas.getChildren().clear();
+        nodeCounter = 0;
+        names.clear();
     }
 
     /**
@@ -544,7 +546,7 @@ public class MainController implements Initializable {
         for (int i = 2 * size + 1; i < nodes.size(); ++ i) {
             TextField textField = (TextField) nodes.get(i);
             if (! GridPane.getRowIndex(textField).equals(GridPane.getColumnIndex(textField))) {
-                textField.setText(String.valueOf(random.nextInt(maxRandomValue)));
+                textField.setText(String.valueOf(random.nextInt(maxRandomValue + 1)));
             }
         }
     }
@@ -619,7 +621,10 @@ public class MainController implements Initializable {
                                 String oldValue, String newValue) {
                 try {
                     if (! newValue.equals(INFINITY_SIGN)){
-                        Integer.parseInt(newValue);
+                        int value = Integer.parseInt(newValue);
+                        if (value < 0) {
+                            throw new NumberFormatException();
+                        }
                     }
                 } catch (NumberFormatException e) {
                     textCell.setText(oldValue);
